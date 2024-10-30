@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Animation</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: black; }
+        #particles-hero { width: 100vw; height: 100vh; }
+    </style>
+</head>
+<body>
+    <div id="particles-hero"></div>
+
+    <!-- Include Three.js and GSAP libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.6.1/gsap.min.js"></script>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 1);
+        document.body.appendChild(renderer.domElement);
+
+        const particleCount = 2000;
+        const particles = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 10;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
+        }
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.05,
+        });
+        const particleSystem = new THREE.Points(particles, particleMaterial);
+        scene.add(particleSystem);
+
+        camera.position.z = 5;
+
+        const animate = function () {
+            requestAnimationFrame(animate);
+            particleSystem.rotation.y += 0.002;
+            renderer.render(scene, camera);
+        };
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const intersects = raycaster.intersectObject(particleSystem);
+            if (intersects.length > 0) {
+                gsap.to(particleSystem.rotation, { y: "+=0.1", x: "+=0.1", duration: 0.3 });
+            }
+        });
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
